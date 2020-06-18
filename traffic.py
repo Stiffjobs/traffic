@@ -62,7 +62,16 @@ def load_data(data_dir):
     labels = []
 
     for i in range(NUM_CATEGORIES):
+        path = os.path.join(data_dir, str(i))
+        for filename in os.listdir(path):
+            full = os.path.join(data_dir, str(i), filename)
+            img = cv2.imread(full)
+            img_resize = cv2.resize(img, (IMG_WIDTH, IMG_HEIGHT))
+            images.append(img_resize)
+            labels.append(i)
 
+    return (images, labels)
+        
 
 
 
@@ -72,7 +81,31 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    raise NotImplementedError
+    #Create a convolutional neural network
+    model = tf.keras.Sequential([
+        tf.keras.layers.Conv2D(
+            32, (3, 3), activation="relu", input_shape=(IMG_WIDTH, IMG_HEIGHT, 3)
+        ),
+        tf.keras.layers.MaxPool2D(pool_size=(2, 2)),
+
+        tf.keras.layers.Flatten(),
+
+        #Add a hidden layer with dropout preventing overfitting
+        tf.keras.layers.Dense(128, activation="relu"),
+        tf.keras.layers.Dropout(0.6),
+
+        #add an output layer with output units for all 43 icon
+        tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax")
+    ])
+
+    #Train neural network
+    model.compile(
+        optimizer="adam",
+        loss="categorical_crossentropy",
+        metrics=["accuracy"]
+    )
+    
+    return model
 
 
 if __name__ == "__main__":
